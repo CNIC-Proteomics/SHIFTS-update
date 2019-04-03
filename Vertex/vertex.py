@@ -1,5 +1,7 @@
 __author__ = "Navratan Bagwan"
-"version = 0.1, Date: 2019-02"
+"version = 0.1, Date: 2019-04"
+#navratan.bagwan@sund.ku.dk
+#change from the last version: this version uses average frequency based on the user input##
 
 import glob
 import os
@@ -43,6 +45,8 @@ parser.add_option("-p", "--PeakReRun", action="store", type="string", dest="reru
 parser.add_option("-e", "--experimentLog", action="store", type="string", dest="ExpLog", help="Enter the path to peakpickingLog file if rerun (-p=1)")
 
 parser.add_option("-s", "--suffix", action="store", type="string", dest="suffixname", help="Enter the suffix name for output file if rerun (-p=1)")
+
+parser.add_option("-n", "--normalizeFreq", action="store", type="string", dest="norm", help="choose if you want to normalize frequency; 1 for T, 0 for F")
 
 (options, args) = parser.parse_args()
 
@@ -92,8 +96,13 @@ if options.suffixname:
 else:
     parser.error("Please enter the suffix name for rerun output file name -h")
 
+if options.norm:
+    norm = options.norm
+else:
+    parser.error("choose if you want to normalize frequency; 1 for T, 0 for F, -h")
 
-def calibrate_every_path(pathTomasterFIle, bins, Xcorthershold, outputfolder, fdrFilter, window, PeakRerun,expLog,rexentension ):
+
+def calibrate_every_path(pathTomasterFIle, bins, Xcorthershold, outputfolder, fdrFilter, window, PeakRerun,expLog,rexentension, smoothTF ):
     LogString = "Location of master file: " + str(pathTomasterFIle) + "\n" + "Bins used for peak picking model: " + str(Xcorthershold)\
                 + "\n" + "Output folder name: " + str(outputfolder) + "\n" + "Global FDR: " + str(fdrFilter) + "\n" + \
                 "Sliding window for guassian modelling (peak picking): " + str(window) + "\n" + "Peak picking part rerun TRUR/FALSE:  0 denotes False and 1 True): " \
@@ -147,7 +156,7 @@ def calibrate_every_path(pathTomasterFIle, bins, Xcorthershold, outputfolder, fd
             os.remove(peakPickingLogfile)
             os.remove(vertexLogfile)
             print ("starting the peakPIcking model")
-            histogramFilenameList = peakPicking.callSlopeMethod(filelist=filelist, bintoHist=bins, windowSize=int(window), rerun=PeakRerun,extensionName=rexentension)
+            histogramFilenameList = peakPicking.callSlopeMethod(filelist=filelist, bintoHist=bins, windowSize=int(window), rerun=PeakRerun,extensionName=rexentension, smotheeingTF=int(smoothTF))
             print("---%s seconds ---" % (time.time() - start_time))
     else:
         if __name__ == '__main__':
@@ -164,11 +173,11 @@ def calibrate_every_path(pathTomasterFIle, bins, Xcorthershold, outputfolder, fd
             os.remove(vertexLogfile)
 
             print ("starting the peakPicking model with different parameter than previous")
-            histogramFilenameList = peakPicking.callSlopeMethod(filelist=expLog, bintoHist=bins, windowSize=int(window), rerun=PeakRerun,extensionName=rexentension)
+            histogramFilenameList = peakPicking.callSlopeMethod(filelist=expLog, bintoHist=bins, windowSize=int(window), rerun=PeakRerun,extensionName=rexentension, smotheeingTF=int(smoothTF))
 
 if __name__ == "__main__":
     calibrate_every_path(pathTomasterFIle=Dir, bins=binSize,Xcorthershold=CorrXcor, outputfolder=Outname, fdrFilter=FDRs,
-                         window=window,PeakRerun=rerunPeak,expLog=ExpLog, rexentension=suffixname)
+                         window=window,PeakRerun=rerunPeak,expLog=ExpLog, rexentension=suffixname, smoothTF=norm)
 
 # calibrate_every_path(pathTomasterFIle=r"E:\Users\nbagwan\Desktop\SHIFTS_lastChange\MasterFile.txt", Xcorthershold=0.22,
 #                      outputfolder = "ModulesTest", bins = 0.001, fdrFilter=0.05, window= 7, PeakRerun="0",

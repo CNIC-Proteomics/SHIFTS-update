@@ -82,6 +82,7 @@ def ClosestDic(processingFileList, listofOneDaltonCenter, ApexList):
 
                     closestSlope = takeClosest(delta_modification, listofOneDaltonCenter)
                     apexClosest = takeClosest(delta_modification,ApexList)
+
                     if closestSlope not in mod2Xcor:
                         mod2Xcor[closestSlope] = [[xscore, str(label).strip(), newline.strip(), delta_modification, apexClosest, str(processingFileList)]]
                     else:
@@ -104,7 +105,6 @@ def calcualteFDR(mod2Xcor1,outPath):
         MinMaxList = [item[3] for item in mod2Xcor1[mod]]
         startingPoint = min(MinMaxList)
         endingPoint = max(MinMaxList)
-
         for eachline in mod2Xcor1[mod]:
             if eachline[1] == "Decoy":
                 decoy += 1.0
@@ -154,9 +154,11 @@ def peakClosestDic(Slope_peak_Dict,mad_fwhm,filepath):
     slopePeak_list = Slope_peak_Dict.keys()
     ApexList = []
     outputFilelist_dic = {}
+
     takeClosest = lambda num, collection: min(collection, key=lambda x: abs(x - num))
     for closeinSlopePeak_List in Slope_peak_Dict:
         for element in Slope_peak_Dict[closeinSlopePeak_List]:
+
             everyApex = element[4]
             theo_mass = float(everyApex)
             experimental_mass = float(element[2].split("\t")[20])
@@ -167,7 +169,7 @@ def peakClosestDic(Slope_peak_Dict,mad_fwhm,filepath):
 #            ppm_error = abs((experimental_mass - theo_mass) * 1000000 / theo_mass)
             massDiff = abs(experimental_mass - theo_mass)
             # if ppm_error <= 10:
-            if massDiff <= float(charge) * float(mad_fwhm):  ##### checking if a scan falls within a PTM peak by using MAd and Charge
+            if massDiff <= float(charge) * float(mad_fwhm[element[5]]):  ##### checking if a scan falls within a PTM peak by using MAd and Charge
                 # if massDiff <= float(mad_fwhm):
                 # outputFilelist.append(element)
 

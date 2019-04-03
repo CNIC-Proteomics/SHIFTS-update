@@ -11,14 +11,17 @@ import time
 import warnings
 import concurrent.futures
 from functools import partial
+import math
+import statistics
 import itertools
 
 separations = "/"
 
 
-def target_slope(filelist, target_dic, bintoHist, window, rerunTF, extensionName ,target=True):
+def target_slope(filelist, target_dic, bintoHist, window, rerunTF, extensionName ,smoothtf, target=True):
     firstFiller, startPoint, LastFiller = all_stats.listFiller(window=window)
 
+    firstFiller1, startPoint1, LastFiller1 = all_stats.listFiller(window=smoothtf)
 
     outputlist = [
         ["Bin", "\t", "Frequency", "\t", "Slope1", "\t", "Slope2", "\t", "peak-Width", "\t", "peak-Apex", "\t",
@@ -36,7 +39,6 @@ def target_slope(filelist, target_dic, bintoHist, window, rerunTF, extensionName
         intialFilename = "/target_Peak_identification_histogram.txt"
         if target:
             fileName = firstfilepath + intialFilename
-    #
 
 
     w1 = open(fileName, "w")
@@ -53,13 +55,45 @@ def target_slope(filelist, target_dic, bintoHist, window, rerunTF, extensionName
     frelist = df[1].astype(int).tolist()
 
     slope1 = [0] * firstFiller
-    deltamassItrator = all_stats.window(binlist, int(window))
-    FrequencyItrator = all_stats.window(frelist, int(window))
-    for Dm, freqeuncey in zip(deltamassItrator, FrequencyItrator):
-        s, intercept, r, p, std_error = linregress(Dm, freqeuncey)
-        slope1.append(s)
 
-    slope1 = slope1 + [0] * LastFiller
+    if smoothtf > 1:
+        print("You have chosen to use average of frequency, and slope 1 will be calculated based on this")
+        averageFreq = [0] * firstFiller1
+        deltamassItrator = all_stats.window(binlist, int(window))
+        FrequencyItrator = all_stats.window(frelist, int(smoothtf))
+
+        for avrgCount in FrequencyItrator:
+            m = statistics.mean(avrgCount)
+            averageFreq.append(m)
+
+        averageFreq = averageFreq + [0] * LastFiller1
+
+        FrequencyItrator1 = all_stats.window(averageFreq, int(window))
+
+        for Dm, freqeuncey in zip(deltamassItrator, FrequencyItrator1):
+
+            s, intercept, r, p, std_error = linregress(Dm, freqeuncey)
+            slope1.append(s)
+
+        slope1 = slope1 + [0] * LastFiller
+
+    else:
+        print("slope 1 will be calculated based on original frequency")
+        averageFreq = [0] * len(binlist)
+        deltamassItrator = all_stats.window(binlist, int(window))
+        FrequencyItrator = all_stats.window(frelist, int(window))
+
+        # for avrgCount in FrequencyItrator:
+        #     m = statistics.mean(avrgCount)
+        #     averageFreq.append(m)
+        #averageFreq = averageFreq + [0] * LastFiller
+        # FrequencyItrator1 = all_stats.window(averageFreq, int(window))
+
+        for Dm, freqeuncey in zip(deltamassItrator, FrequencyItrator):
+            s, intercept, r, p, std_error = linregress(Dm, freqeuncey)
+            slope1.append(s)
+
+        slope1 = slope1 + [0] * LastFiller
 
     slope2 = [0] * firstFiller
     deltamassItrator = all_stats.window(binlist, int(window))
@@ -114,9 +148,9 @@ def target_slope(filelist, target_dic, bintoHist, window, rerunTF, extensionName
     # print len(Apex)
     # print len(width)
 
-    outTest = pandas.DataFrame(np.column_stack([binlist, frelist, slope1, slope2, width, Apex, ApexInterCept]),
+    outTest = pandas.DataFrame(np.column_stack([binlist, frelist, slope1, slope2, width, Apex, ApexInterCept, averageFreq]),
                                columns=["bin", "freq", "first derivative", "second derivative", "gauss width of peak",
-                                        "apex", "intercept(final Apex)"])
+                                        "apex", "intercept(final Apex)", "averageFreq"])
 
     outTest.to_csv(fileName, index=False, sep="\t")
 
@@ -171,7 +205,7 @@ def SlopeCalculation(filelist, bintoHist):
     return target_histDic
 
 
-def callSlopeMethod(filelist, bintoHist, windowSize, rerun, extensionName):
+def callSlopeMethod(filelist, bintoHist, windowSize, rerun, extensionName, smotheeingTF):
     # if __name__ == '__main__':
     targetDiclist = []
     func1 = partial(SlopeCalculation, bintoHist=bintoHist)
@@ -198,7 +232,7 @@ def callSlopeMethod(filelist, bintoHist, windowSize, rerun, extensionName):
                     useDic[dm] = useDic[dm] + i[dm]
 
         targetFileName = ["", ""]
-        targetFileName[0] = target_slope(filelist, target_dic=useDic, bintoHist=bintoHist, target=True, window=windowSize, rerunTF=rerun, extensionName=extensionName)
+        targetFileName[0] = target_slope(filelist, target_dic=useDic, bintoHist=bintoHist, target=True, window=windowSize, rerunTF=rerun, extensionName=extensionName, smoothtf=smotheeingTF)
     # targetFileName[1] = target_slope(filelist, target_dic=decoy_histDic, bintoHist=bintoHist, target=False,
     #                                  window=windowSize)
     # return targetFileName

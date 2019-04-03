@@ -58,8 +58,7 @@ def MassTagging2Seq_T(histogramFile, apex_thershold, firstGauss, prefixname):
     Apex = []
     outputlist1 = [
         ["Bin", "\t", "Frequency", "\t", "Slope1", "\t", "Slope2", "\t", "peak-Width", "\t", "peak-Apex", "\t",
-         "Intercept", "\t", "Tag",
-         "\n"]]
+         "Intercept", "\t", "averageFreq", "\t", "Tag", "\n"]]
     with open(histogramFile) as slopeFile:
         next(slopeFile)
         firstDerivative = []
