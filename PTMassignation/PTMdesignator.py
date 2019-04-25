@@ -12,6 +12,9 @@ import time
 import concurrent.futures
 from functools import partial
 from optparse import OptionParser
+import multiprocessing
+# multiprocessing.set_start_method('fork')
+from multiprocessing.managers import BaseManager
 
 usage = "usage:-e -a -f  -l -p \n Use -h for detailed help for parameter\nversion = 0.1, Date: 2019-02" \
         "\nPTMdesignator is a part (module 2) of SHIFTS \n(Systematic, Hypothesis-free Identification of PTMs with controlled \nFDR " \
@@ -90,6 +93,7 @@ def LocalandPeakFDR(experirmetlist, apexFile, fastafile, localFDRthreshold, peak
 
             OnDaWindowCenteList = localFDR_median.meadianSlope(intDelatamass=intList, originalDeltaMas=floatList)
 
+
         listofDic = []
         func1 = partial(localFDR_median.ClosestDic, listofOneDaltonCenter=OnDaWindowCenteList, ApexList=ApexList)
         with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -100,6 +104,7 @@ def LocalandPeakFDR(experirmetlist, apexFile, fastafile, localFDRthreshold, peak
         #print len(listofDic)
         for evryDic in listofDic:
             for firstElement in evryDic:
+
                 if firstElement not in updatedList:
                     updatedList[firstElement]=evryDic[firstElement]
                 else:
@@ -107,21 +112,31 @@ def LocalandPeakFDR(experirmetlist, apexFile, fastafile, localFDRthreshold, peak
                         updatedList[firstElement].append(everySmallList)
 
         updatedList1 = updatedList
-        updatedList2 = updatedList
+        #updatedList2 = updatedList
 
         print("1da window center is calculated")
 
         localFDR_median.calcualteFDR(mod2Xcor1=updatedList1, outPath=listofFile[0])
         print("local fdr is done")
-        AllDataDicforAssignation = localFDR_median.peakClosestDic(Slope_peak_Dict=updatedList2, mad_fwhm =fwhmListDic, filepath=listofFile[0])
+
+        AllDataDicforAssignation = localFDR_median.peakClosestDic(Slope_peak_Dict=updatedList1, mad_fwhm =fwhmListDic, filepath=listofFile[0])
+
+        func3 = partial(localFDR_median.ProduceFileforEveryExperiment, bigDataFile=AllDataDicforAssignation)
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            executor.map(func3, listofFile)
+        # for i in listofFile:
+        #     localFDR_median.ProduceFileforEveryExperiment(listofpath=i, bigDataFile=AllDataDicforAssignation)
+
+
         # print len(AllDataList)
         print("peak fdr is done")
-        func2 = partial(psmAssignment.taggingMethodForCOMET_PTM, DictofallData=AllDataDicforAssignation, fasta=fastafile, localFDRfilter= localFDRthreshold, peakFDRfilter=peakFDRthreshold)
+        func2 = partial(psmAssignment.taggingMethodForCOMET_PTM, fasta=fastafile, localFDRfilter= localFDRthreshold, peakFDRfilter=peakFDRthreshold)
         with concurrent.futures.ProcessPoolExecutor() as executor:
             executor.map(func2, listofFile)
-            #psmAssignment.taggingMethodForCOMET_PTM(DictofallData=AllDataDicforAssignation, calibrationFile=i, fasta=fastafile, localFDRfilter= 0.05, peakFDRfilter=0.05)
+        # for i in listofFile:
+        #     psmAssignment.taggingMethodForCOMET_PTM(calibrationFile=i, fasta=fastafile, localFDRfilter= 0.05, peakFDRfilter=0.05)
 
-            print("PTMesignator has finished")
+
     print("---%s seconds ---" % (time.time() - start_time))
 
 

@@ -28,13 +28,14 @@ def modfiyPeptide(plainSeq, deltapaptide, peakapex):
     seq_mass = plainSeq + "_" + str(newclose)
     return seq_mass, finalSeqMassTag
 
-def taggingMethodForCOMET_PTM(calibrationFile, DictofallData, fasta, localFDRfilter, peakFDRfilter):
+def taggingMethodForCOMET_PTM(calibrationFile, fasta, localFDRfilter, peakFDRfilter):
     outpath = os.path.dirname(calibrationFile)
     NonOrphanList = ["Scan", "\t", "SearchEngineRank", "\t", "Charge", "\t", "Exp Mh", "\t", "Theo mh+", "\t", "Exp MZ", "\t", "Xcor", "\t",
          "Seq", "\t", "RetentionTIme", "\t", "Protein", "\t", "Delta_MOD" ,"\t", "B_series","\t", "Y_series", "\t", "Jumps", "\t",
          "DeltaPeptide", "\t", "FileName", "\t", "CorXcor" "\t", "New_expMH", "\t", "label", "\t",
          "median", "\t", "Calibrated Delta MH", "\t", "Calibrated Delta MZ","\t", "Calibrated EXP MZ","\t", "Tags", "\t",
                      "fastaDescription", "\t", "seq_mass", "\t", "PeakApex/Dmass", "\t", "DeltaPeptide", "\n"]
+
 
     OrphanList = []
     outfileName = outpath + "/AllWithSequence-massTag.txt"
@@ -45,7 +46,9 @@ def taggingMethodForCOMET_PTM(calibrationFile, DictofallData, fasta, localFDRfil
     GlobalXcorrThreshold = all_stats.globalfdr(globalFDRFile[0])
     fastaHeaderDic = createFasta(fasta=fasta)
 
-    for line in DictofallData[calibrationFile]:
+    DictofallData = outpath + "/Peak_and_Slope_FDRfile-Smallchunk.txt"
+
+    for line in open(DictofallData):#[calibrationFile]:
         splits = line.split("\t")
         proteinComet = splits[9].strip()
         Label = splits[18].strip()
@@ -96,11 +99,9 @@ def taggingMethodForCOMET_PTM(calibrationFile, DictofallData, fasta, localFDRfil
 
 
 
-
     for nonorphan in NonOrphanList:
         w.writelines(nonorphan)
 
     for orphans in OrphanList:
         w.writelines(orphans)
-
     w.close()

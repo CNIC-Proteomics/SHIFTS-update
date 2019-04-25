@@ -3,6 +3,7 @@ from scipy.stats.stats import linregress
 import os
 import itertools
 import pdb
+import pandas as pd
 #alpha = all_stats.getAlpha(alphafile)
 def iDawindwoEstimator(processingFileList):
     alpha = 1
@@ -144,11 +145,13 @@ def calcualteFDR(mod2Xcor1,outPath):
 
 
 def peakClosestDic(Slope_peak_Dict,mad_fwhm,filepath):
+
     DiffExpData = {}
     outputFilelist = [
         "Scan\tSearchengineRank\tcharge\texpMH\ttheoMH\tExpmz\tXcor\tSeq\tRetentionTime\tProtAcc\tDeltaMod"
         "\tB-series\tY.series\tIsotpicJump\tdeltaPeptide\tfilename\tCorXcor\tnewExpMH\tLabel\tMedian"
         "\tCal_Delta_MH\tCal_Delta_M/Z\tCalExp_MZ\tPeakApex\tpeakDecoyCount\tpeakTargetCount\tPeakFDR\tLocalFDR\tExperimentName\n"]
+    # outputFilelist = []
     outputfilename = os.path.dirname(filepath) + "/Peak_and_Slope_FDRfile.txt"
     w = open(outputfilename, "w")
     slopePeak_list = Slope_peak_Dict.keys()
@@ -207,25 +210,51 @@ def peakClosestDic(Slope_peak_Dict,mad_fwhm,filepath):
                     PeakFDR = "1"
                 everyline.append(PeakFDR)
 
+
                 outputFilelist.append("\t".join(everyline[2].split("\t")) + "\t" + str(everyline[3]) + "\t"+ str(decoy) + "\t" + str(target) + "\t" + str(PeakFDR) + "\t" + str(everyline[4]) + "\t" + str(everyline[5]) + "\n")
 
                 ####### creating outpu return for for final assignation
 
-                if expName not in DiffExpData:
-                    DiffExpData[expName] = ["\t".join(everyline[2].split("\t")) + "\t" + str(everyline[3]) + "\t"+ str(decoy) + "\t"+ str(target) + "\t" + str(PeakFDR) + "\t" + str(everyline[4]) + "\t" + str(everyline[5]) +"\n" ]
-                else:
-                    DiffExpData[expName].append("\t".join(everyline[2].split("\t")) + "\t" + str(everyline[3]) + "\t"+ str(decoy) + "\t"+ str(target) + "\t" + str(PeakFDR) + "\t" + str(everyline[4]) + "\t" + str(everyline[5]) +"\n" )
+                # if expName not in DiffExpData:
+                #     DiffExpData[expName] = ["\t".join(everyline[2].split("\t")) + "\t" + str(everyline[3]) + "\t"+ str(decoy) + "\t"+ str(target) + "\t" + str(PeakFDR) + "\t" + str(everyline[4]) + "\t" + str(everyline[5]) +"\n" ]
+                # else:
+                #     DiffExpData[expName].append("\t".join(everyline[2].split("\t")) + "\t" + str(everyline[3]) + "\t"+ str(decoy) + "\t"+ str(target) + "\t" + str(PeakFDR) + "\t" + str(everyline[4]) + "\t" + str(everyline[5]) +"\n" )
 
     for restMass in Slope_peak_Dict:
         for mass in Slope_peak_Dict[restMass]:
             outputFilelist.append("\t".join(mass[2].split("\t")) + "\t" + "Orphan" + "\t" + "1"+ "\t" + "1" + "\t" + "1" + "\t" + str(mass[8]) + "\t" + str(mass[5]) + "\n")
-            if mass[5] not in DiffExpData:
-                DiffExpData[mass[5]] = ["\t".join(mass[2].split("\t")) + "\t" + "Orphan" + "\t" + "1" + "\t" + "1" + "\t" + "1" + "\t" + str(mass[8]) + "\t" + str(mass[5]) + "\n"]
-            else:
-                DiffExpData[mass[5]].append("\t".join(mass[2].split("\t")) + "\t" + "Orphan" + "\t" + "1" + "\t" + "1" + "\t" + "1" + "\t" + str(mass[8]) + "\t" + str(mass[5]) + "\n")
+            # if mass[5] not in DiffExpData:
+            #     DiffExpData[mass[5]] = ["\t".join(mass[2].split("\t")) + "\t" + "Orphan" + "\t" + "1" + "\t" + "1" + "\t" + "1" + "\t" + str(mass[8]) + "\t" + str(mass[5]) + "\n"]
+            # else:
+            #     DiffExpData[mass[5]].append("\t".join(mass[2].split("\t")) + "\t" + "Orphan" + "\t" + "1" + "\t" + "1" + "\t" + "1" + "\t" + str(mass[8]) + "\t" + str(mass[5]) + "\n")
+
+
+    # df = pd.DataFrame(outputFilelist)
+
+    # for test in DiffExpData:
+    #     print(len(DiffExpData[test]))
+
 
     for towrite in outputFilelist:
         w.write(str(towrite))
     w.close()
 
-    return DiffExpData
+    return outputfilename
+    # return DiffExpData
+
+def ProduceFileforEveryExperiment(listofpath,bigDataFile):
+    outputFilelist = [
+        "Scan\tSearchengineRank\tcharge\texpMH\ttheoMH\tExpmz\tXcor\tSeq\tRetentionTime\tProtAcc\tDeltaMod"
+        "\tB-series\tY.series\tIsotpicJump\tdeltaPeptide\tfilename\tCorXcor\tnewExpMH\tLabel\tMedian"
+        "\tCal_Delta_MH\tCal_Delta_M/Z\tCalExp_MZ\tPeakApex\tpeakDecoyCount\tpeakTargetCount\tPeakFDR\tLocalFDR\tExperimentName\n"]
+    outputfilename = os.path.dirname(listofpath) + "/Peak_and_Slope_FDRfile-Smallchunk.txt"
+    w = open(outputfilename, "w")
+    with open(bigDataFile) as bigF:
+        next(bigF)
+        for line in bigF:
+            ExpName = line.split("\t")[-1].strip()
+            if listofpath == ExpName:
+                w.write(line)
+
+
+    w.close()
