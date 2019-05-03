@@ -99,6 +99,7 @@ def orphanCalssificationANDisotopCorrection(experirmntlist, sigmaFiles, MADfiles
                 executor.map(func, listofFile)
 
         elif OrphanTF == "0" and IsotopTF == "1":
+
             func1 = partial(Isotop_CorrectionAdvance.isotop, targetFile=isotopTargetFile, madFIle=MADfiles)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 executor.map(func1, listofFile)

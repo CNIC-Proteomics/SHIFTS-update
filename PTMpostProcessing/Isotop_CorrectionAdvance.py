@@ -22,8 +22,8 @@ def separateTargetAndDecoy(fileName, folder):
         for line in filename:
             splits = line.split("\t")
             label = splits[18].strip()
-
-            if label == "Target":
+            tag = splits[23].strip()
+            if label == "Target" and tag!= "Orphan":
                 Tdic[line.strip()] = 1
             else:
                 Ddic[line.strip()] = 1
