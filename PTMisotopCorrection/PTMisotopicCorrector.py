@@ -71,7 +71,7 @@ def orphanCalssificationANDisotopCorrection(experirmntlist, MADfiles, isotopTarg
         listofFile = creatList(listoffiles=experirmntlist)
 
         # for i in listofFile:
-        #     IsotopCorrectionDM.isotop(folder=i, targetFile=isotopTargetFile, madFIle=MADfiles,apexList=r"D:\CNIC\SHIFTS0.2\data\testTissue\bin002_w7_SL18000Target_ApexList_mass.txt")
+        #     IsotopCorrectionDM.isotop(folder=i, targetFile=isotopTargetFile, madFIle=MADfiles,apexList=peakFIle, col=colnumber)
         func1 = partial(IsotopCorrectionDM.isotop, targetFile=isotopTargetFile, madFIle=MADfiles, apexList=peakFIle, col= colnumber)
         with concurrent.futures.ProcessPoolExecutor() as executor:
             executor.map(func1, listofFile)

@@ -70,6 +70,7 @@ def isotop(folder, targetFile, madFIle, apexList, col):
 
     apexilstfromInput = creatPeakApexfromList(peakapexfile=apexList)
 
+
     wfile = open(writefile, "w")
     wfile.write(header)
 
@@ -80,6 +81,7 @@ def isotop(folder, targetFile, madFIle, apexList, col):
     print (madfilePath)
     FWHM = float(all_stats.fullWidthHalfMaximum(MADfile=madfilePath[0]))
     ApexFequency, targetFileDic = CountDic_and_WorkingDic(targetFile, folder=folder1, listofApexs=apexilstfromInput, column=col)
+
 
     c13Mass = 1.003354
     c13end = c13Mass + float(FWHM)
@@ -96,17 +98,33 @@ def isotop(folder, targetFile, madFIle, apexList, col):
         c = 0
         for firstE in range(len(uniqueMasses)-1):
             for SecondE in range(firstE+1, len(uniqueMasses)):
-
                 diff = float(uniqueMasses[SecondE]) - float(uniqueMasses[firstE])
 
-                if c13end >= float(diff) >= c13start and int(ApexFequency[str(uniqueMasses[firstE])]) > int(ApexFequency[str(uniqueMasses[SecondE])]):
+                if c13end >= abs(float(diff)) >= c13start:
+                    # tempList = [(ApexFequency[str(uniqueMasses[firstE])]) ,int(ApexFequency[str(uniqueMasses[SecondE])])]
 
-                    # print(ApexFequency[str(uniqueMasses[firstE])])
-                    # print(ApexFequency[str(uniqueMasses[SecondE])])
-                    # if int(ApexFequency[str(uniqueMasses[firstE])]) > int(ApexFequency[str(uniqueMasses[SecondE])]):
-                    c = c + 1
-                    DicforTrueIsotop[str(uniqueMasses[SecondE])] = str(uniqueMasses[firstE])
-                    break
+                    if int(ApexFequency[str(uniqueMasses[firstE])]) < int(ApexFequency[str(uniqueMasses[SecondE])]):
+                        to_beReplaced = str(uniqueMasses[firstE])
+                        replace_by = str(uniqueMasses[SecondE])
+                        c = c + 1
+
+                        DicforTrueIsotop[to_beReplaced] = replace_by
+                    elif int(ApexFequency[str(uniqueMasses[firstE])]) > int(ApexFequency[str(uniqueMasses[SecondE])]):
+
+                        to_beReplaced = str(uniqueMasses[SecondE])
+                        replace_by = str(uniqueMasses[firstE])
+
+                        c = c + 1
+
+                        DicforTrueIsotop[to_beReplaced] = replace_by
+                        break
+
+                # elif c13end >= abs(float(diff)) >= c13start and int(ApexFequency[str(uniqueMasses[firstE])]) > int(ApexFequency[str(uniqueMasses[SecondE])]):
+                #     c = c + 1
+                #     #DicforTrueIsotop[str(uniqueMasses[SecondE])] = str(uniqueMasses[firstE])
+                #     DicforTrueIsotop[str(uniqueMasses[firstE])] = str(uniqueMasses[SecondE])
+                #     break
+
 
 
         # if c == 0:
